@@ -1,6 +1,8 @@
+
 # Basic AOSP Build
 
 A comprehensive bash script for building the Android Open Source Project (AOSP) from source.
+
 
 ## Features
 
@@ -18,6 +20,16 @@ A comprehensive bash script for building the Android Open Source Project (AOSP) 
 - **RAM**: 16GB minimum (32GB recommended)
 - **Storage**: 100GB+ free space
 - **CPU**: Multi-core processor (8+ cores recommended)
+
+### System Installation 
+
+During the build I had to install the following packages
+
+```
+sudo apt-get update
+sudo apt-get install libncurses5
+
+```
 
 ### Required Software
 The script will check for and install missing dependencies:
