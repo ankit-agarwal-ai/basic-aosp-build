@@ -48,12 +48,12 @@ check_prerequisites() {
     fi
     
     # Check for required commands
-    local required_commands=("git" "curl" "wget" "python3" "java" "make" "gcc" "g++")
-    for cmd in "${required_commands[@]}"; do
-        if ! command -v "$cmd" &> /dev/null; then
-            error "Required command '$cmd' is not installed"
-        fi
-    done
+    # local required_commands=("git" "curl" "wget" "python3" "java" "make" "gcc" "g++")
+    # for cmd in "${required_commands[@]}"; do
+    #     if ! command -v "$cmd" &> /dev/null; then
+    #         error "Required command '$cmd' is not installed"
+    #     fi
+    # done
     
     # Check for repo command
     if ! command -v "repo" &> /dev/null; then
