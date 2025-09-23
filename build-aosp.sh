@@ -136,14 +136,14 @@ fetch_manifest() {
     # Initialize repo (only if not already initialized or if branch changed)
     if [ ! -d ".repo" ]; then
         log "Initializing repo..."
-        repo init -u "$AOSP_MANIFEST_URL" -b "$branch"
+        repo init -u "$AOSP_MANIFEST_URL" -b "$branch" --config-name --color=always
     else
         log "Repo already initialized, checking if branch needs to be updated..."
         # Check current branch and update if different
         local current_branch=$(repo manifest -r | grep -o 'revision="[^"]*"' | head -1 | cut -d'"' -f2)
         if [ "$current_branch" != "$branch" ]; then
             log "Switching from branch '$current_branch' to '$branch'"
-            repo init -u "$AOSP_MANIFEST_URL" -b "$branch"
+            repo init -u "$AOSP_MANIFEST_URL" -b "$branch" --config-name --color=always
         else
             log "Already on correct branch '$branch'"
         fi
