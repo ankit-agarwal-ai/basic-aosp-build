@@ -4,10 +4,10 @@ steps:
       - curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
       - echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
       - sudo apt-get update
-      - sudo apt-get install --assume-yes google-cloud-cli google-cloud-cli-gke-gcloud-auth-plugin
+      - sudo apt-get install --assume-yes google-cloud-cli google-cloud-cli-gke-gcloud-auth-plugin m4
       - git config --global user.name "Demo Aspect Bot"
       - git config --global user.email "aspect_bot@demo.aspect.com"
       - git config --global color.ui false
-      - ./build-aosp.sh
+      - ./build-aosp.sh --rbe
     agents:
       queue: aspect-default

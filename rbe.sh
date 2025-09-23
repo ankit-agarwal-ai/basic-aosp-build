@@ -1,7 +1,7 @@
 source build/envsetup.sh
 source build/make/rbesetup.sh  
 
-export RBE_service="INSERT CLUSTER" 
+export RBE_service="unix:///mnt/ephemeral/buildbarn/.cache/bb_clientd/grpc" 
 export RBE_use_application_default_credentials="false" 
 export RBE_use_rpc_credentials="false" 
  
