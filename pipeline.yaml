@@ -9,6 +9,6 @@ steps:
       - git config --global user.name "Demo Aspect Bot"
       - git config --global user.email "aspect_bot@demo.aspect.com"
       - git config --global color.ui false
-      - ./build-aosp.sh --rbe
+      - ./build-aosp.sh --rbe --build-dir /mnt/ephemeral/aosp_workspace
     agents:
       queue: aspect-default
