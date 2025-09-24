@@ -4,10 +4,7 @@ source build/make/rbesetup.sh
 export RBE_service="unix:///mnt/ephemeral/buildbarn/.cache/bb_clientd/grpc" 
 export RBE_use_application_default_credentials="false" 
 export RBE_use_rpc_credentials="false" 
- 
-# export RBE_tls_client_auth_cert="/mosaic/engflow.crt" 
-# export RBE_tls_client_auth_key="/mosaic/engflow.key" 
- 
+  
 export USE_RBE="1" 
 export NINJA_REMOTE_NUM_JOBS="500" 
 export WORKER_POOL="default" 
