@@ -59,7 +59,7 @@ export RBE_service_no_auth="true"
 export RBE_enable_deps_cache="true" 
 export RBE_cache_dir="$HOME/.cache/reclient/cache" 
 mkdir -p $RBE_cache_dir 
- 
+export RBE_platform="OSFamily=Linux,container-image=docker://ghcr.io/catthehacker/ubuntu:act-22.04@sha256:5f9c35c25db1d51a8ddaae5c0ba8d3c163c5e9a4a6cc97acd409ac7eae239448" 
 export RBE_v=4
 export RBE_alsologtostderr=true 
 export RBE_service_no_security=true 
