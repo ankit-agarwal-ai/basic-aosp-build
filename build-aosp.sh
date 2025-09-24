@@ -133,7 +133,7 @@ fetch_manifest() {
     local target=${2:-$DEFAULT_TARGET}
     local sync_jobs=${3:-$DEFAULT_SYNC_JOBS}
     local build_dir=${4:-$BUILD_DIR}
-    
+    local script_dir=${5:-$BUILD_DIR}
     log "Fetching AOSP manifest for branch: $branch"
     
     # Change to build directory (already created by create_build_dir)
@@ -164,12 +164,12 @@ fetch_manifest() {
     fi
     
     # Copy RBE script from repo root to build directory (always copy for availability)
-    local script_dir=$(dirname "$(realpath "$0")")
     if [ -f "$script_dir/rbe.sh" ]; then
         log "Copying RBE script from repo root to build directory..."
         cp "$script_dir/rbe.sh" "rbe.sh"
     else
         log "RBE script not found in repo root ($script_dir/rbe.sh)"
+        exit 1
     fi
     
     # Sync the repository with rate limiting
@@ -393,6 +393,8 @@ main() {
                 ;;
         esac
     done
+
+    script_dir=$(dirname "$(realpath "$0")")
     
     log "Starting AOSP build process..."
     log "Branch: $branch"
@@ -411,8 +413,8 @@ main() {
     # Run the build process
     check_prerequisites
     create_build_dir "$build_dir"
-    setup_environment
-    fetch_manifest "$branch" "$target" "$sync_jobs" "$build_dir"
+    setup_environment "$script_dir"
+    fetch_manifest "$branch" "$target" "$sync_jobs" "$build_dir" "$script_dir"
     setup_build "$target" "$use_rbe" "$build_dir"
     start_build "$build_dir"
     
