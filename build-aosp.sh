@@ -85,6 +85,25 @@ check_prerequisites() {
     success "Prerequisites check completed"
 }
 
+# Function to create build directory
+create_build_dir() {
+    local build_dir="$1"
+    
+    log "Creating build directory: $build_dir"
+    
+    if [ -d "$build_dir" ]; then
+        log "Build directory '$build_dir' already exists"
+        return 0
+    fi
+    
+    mkdir -p "$build_dir"
+    if [ $? -eq 0 ]; then
+        log "Successfully created build directory '$build_dir'"
+    else
+        error "Failed to create build directory '$build_dir'. Check permissions and path."
+    fi
+}
+
 # Function to setup build environment
 setup_environment() {
     log "Setting up build environment..."
@@ -113,24 +132,19 @@ fetch_manifest() {
     local branch=${1:-$DEFAULT_BRANCH}
     local target=${2:-$DEFAULT_TARGET}
     local sync_jobs=${3:-$DEFAULT_SYNC_JOBS}
+    local build_dir=${4:-$BUILD_DIR}
     
     log "Fetching AOSP manifest for branch: $branch"
     
-    # Create or use existing build directory
-    if [ -d "$BUILD_DIR" ]; then
-        log "Using existing build directory '$BUILD_DIR'"
-        cd "$BUILD_DIR"
-        
-        # Check if this is already a repo-managed directory
-        if [ -d ".repo" ]; then
-            log "Existing repo directory found, will sync to update"
-        else
-            warning "Build directory exists but is not a repo directory. This may cause issues."
-        fi
+    # Change to build directory (already created by create_build_dir)
+    log "Using build directory '$build_dir'"
+    cd "$build_dir"
+    
+    # Check if this is already a repo-managed directory
+    if [ -d ".repo" ]; then
+        log "Existing repo directory found, will sync to update"
     else
-        log "Creating new build directory '$BUILD_DIR'"
-        mkdir -p "$BUILD_DIR"
-        cd "$BUILD_DIR"
+        log "New build directory, will initialize repo"
     fi
     
     # Initialize repo (only if not already initialized or if branch changed)
@@ -203,8 +217,12 @@ fetch_manifest() {
 setup_build() {
     local target=${1:-$DEFAULT_TARGET}
     local use_rbe=${2:-false}
+    local build_dir=${3:-$BUILD_DIR}
     
     log "Setting up build configuration for target: $target"
+    
+    # Change to build directory
+    cd "$build_dir"
     
     # Source the appropriate build environment
     if [ "$use_rbe" = true ]; then
@@ -252,7 +270,12 @@ setup_build() {
 
 # Function to start the build
 start_build() {
+    local build_dir=${1:-$BUILD_DIR}
+    
     log "Starting AOSP build..."
+    
+    # Change to build directory
+    cd "$build_dir"
     
     # Start the build with parallel jobs
     local jobs=$(nproc)
@@ -277,6 +300,7 @@ show_usage() {
     echo "  -t, --target TARGET     Build target (default: $DEFAULT_TARGET)"
     echo "  -j, --jobs JOBS         Number of parallel jobs for repo sync (default: $DEFAULT_SYNC_JOBS)"
     echo "  -r, --rbe               Use RBE (Remote Build Execution) for distributed builds"
+    echo "  -d, --build-dir DIR      Set custom build directory (default: $BUILD_DIR, auto-created if needed)"
     echo "  -c, --clean             Clean build directory before starting (removes existing build)"
     echo "  -l, --list-targets      List available lunch targets and exit"
     echo "  -h, --help              Show this help message"
@@ -287,6 +311,7 @@ show_usage() {
     echo "  $0 -t aosp_x86_64-userdebug          # Build for x86_64"
     echo "  $0 -j 2                              # Use only 2 parallel jobs (if getting 429 errors)"
     echo "  $0 -r                                 # Use RBE for distributed builds"
+    echo "  $0 -d /path/to/custom/build           # Use custom build directory"
     echo "  $0 -l                                 # List available lunch targets"
     echo "  $0 -c -b master -t aosp_arm64-user   # Clean build (removes existing directory)"
     echo ""
@@ -297,6 +322,7 @@ show_usage() {
     echo ""
     echo "Incremental Builds:"
     echo "  - By default, existing build directories are preserved and reused"
+    echo "  - Build directories are automatically created if they don't exist"
     echo "  - Only use -c/--clean when you need a completely fresh build"
     echo "  - Repo sync will update existing repositories incrementally"
     echo "  - This significantly speeds up subsequent builds"
@@ -320,6 +346,7 @@ main() {
     local branch="$DEFAULT_BRANCH"
     local target="$DEFAULT_TARGET"
     local sync_jobs="$DEFAULT_SYNC_JOBS"
+    local build_dir="$BUILD_DIR"
     local use_rbe=false
     local clean_build=false
     
@@ -342,12 +369,16 @@ main() {
                 use_rbe=true
                 shift
                 ;;
+            -d|--build-dir)
+                build_dir="$2"
+                shift 2
+                ;;
             -c|--clean)
                 clean_build=true
                 shift
                 ;;
             -l|--list-targets)
-                list_targets
+                list_targets "$build_dir"
                 exit 0
                 ;;
             -h|--help)
@@ -363,32 +394,36 @@ main() {
     log "Starting AOSP build process..."
     log "Branch: $branch"
     log "Target: $target"
+    log "Build directory: $build_dir"
     log "Sync jobs: $sync_jobs"
     log "Use RBE: $use_rbe"
     log "Clean build: $clean_build"
     
     # Clean build directory if requested
-    if [ "$clean_build" = true ] && [ -d "$BUILD_DIR" ]; then
+    if [ "$clean_build" = true ] && [ -d "$build_dir" ]; then
         log "Cleaning build directory..."
-        rm -rf "$BUILD_DIR"
+        rm -rf "$build_dir"
     fi
     
     # Run the build process
     check_prerequisites
+    create_build_dir "$build_dir"
     setup_environment
-    fetch_manifest "$branch" "$target" "$sync_jobs"
-    setup_build "$target" "$use_rbe"
-    start_build
+    fetch_manifest "$branch" "$target" "$sync_jobs" "$build_dir"
+    setup_build "$target" "$use_rbe" "$build_dir"
+    start_build "$build_dir"
     
     success "AOSP build process completed!"
 }
 
 # Function to list available lunch targets
 list_targets() {
+    local build_dir=${1:-$BUILD_DIR}
+    
     log "Listing available lunch targets..."
     
-    if [ -d "$BUILD_DIR" ] && [ -d "$BUILD_DIR/.repo" ]; then
-        cd "$BUILD_DIR"
+    if [ -d "$build_dir" ] && [ -d "$build_dir/.repo" ]; then
+        cd "$build_dir"
         if [ -f "build/envsetup.sh" ]; then
             source build/envsetup.sh
             log "Available lunch targets:"
