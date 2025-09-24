@@ -352,7 +352,7 @@ main() {
     local build_dir="$BUILD_DIR"
     local use_rbe=false
     local clean_build=false
-    
+    local script_dir=$(dirname "$(realpath "$0")")
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -393,8 +393,6 @@ main() {
                 ;;
         esac
     done
-
-    script_dir=$(dirname "$(realpath "$0")")
     
     log "Starting AOSP build process..."
     log "Branch: $branch"
