@@ -163,10 +163,13 @@ fetch_manifest() {
         fi
     fi
     
-    # Copy RBE script if it exists in the parent directory (always copy for availability)
-    if [ -f "../rbe.sh" ]; then
-        log "Copying RBE script to build directory..."
-        cp "../rbe.sh" "rbe.sh"
+    # Copy RBE script from repo root to build directory (always copy for availability)
+    local script_dir=$(dirname "$(realpath "$0")")
+    if [ -f "$script_dir/rbe.sh" ]; then
+        log "Copying RBE script from repo root to build directory..."
+        cp "$script_dir/rbe.sh" "rbe.sh"
+    else
+        log "RBE script not found in repo root ($script_dir/rbe.sh)"
     fi
     
     # Sync the repository with rate limiting
