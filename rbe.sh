@@ -65,6 +65,6 @@ mkdir -p $RBE_cache_dir
  
 export RBE_v=4
 export RBE_alsologtostderr=true 
- 
+export RBE_service_no_security=true 
 # OPTIONAL: Skip downloading object files. 
 # export RBE_download_regex="-.*\\.o" 
