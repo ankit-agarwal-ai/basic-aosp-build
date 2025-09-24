@@ -56,7 +56,7 @@ export RBE_ZIP_POOL="$WORKER_POOL"
  
 export RBE_instance="default" 
 export RBE_DIR="prebuilts/remoteexecution-client/live" 
-export RBE_server_address="unix:///tmp/reproxy.sock" 
+# export RBE_server_address="unix:///tmp/reproxy.sock" 
 export RBE_service_no_auth="true" 
  
 export RBE_enable_deps_cache="true" 
