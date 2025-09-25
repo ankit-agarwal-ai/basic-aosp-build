@@ -7,7 +7,7 @@ set -e  # Exit on any error
 
 # Configuration
 AOSP_MANIFEST_URL="https://android.googlesource.com/platform/manifest"
-DEFAULT_BRANCH="android-14.0.0_r1"
+DEFAULT_BRANCH="android-14.0.0_r22"
 DEFAULT_TARGET="aosp_arm64-userdebug"  # Will be validated and corrected if needed
 BUILD_DIR="aosp"
 LOG_FILE="aosp-build.log"
