@@ -104,6 +104,12 @@ create_build_dir() {
     fi
 }
 
+# Function to get absolute log file path
+get_log_file_path() {
+    local build_dir="$1"
+    echo "$build_dir/../$LOG_FILE"
+}
+
 # Function to setup build environment
 setup_environment() {
     log "Setting up build environment..."
@@ -284,13 +290,15 @@ start_build() {
     local jobs=$(nproc)
     log "Building with $jobs parallel jobs"
     
-    make -j"$jobs" 2>&1 | tee -a "../$LOG_FILE"
+    make -j"$jobs" 2>&1 | tee -a "$(get_log_file_path "$build_dir")"
     
     if [ ${PIPESTATUS[0]} -eq 0 ]; then
         success "AOSP build completed successfully!"
         log "Build artifacts are available in: $(pwd)/out/target/product/*/"
+        return 0
     else
-        error "AOSP build failed. Check the log file for details."
+        echo -e "${RED}[ERROR]${NC} AOSP build failed. Check the log file for details." | tee -a "$(get_log_file_path "$build_dir")"
+        return 1
     fi
 }
 
@@ -335,6 +343,12 @@ show_usage() {
     echo "  - RBE enables distributed builds for faster compilation"
     echo "  - Make sure to configure your RBE cluster settings in rbe.sh"
     echo "  - rbe.sh must exist in the project directory when using RBE"
+    echo ""
+    echo "Buildkite Integration:"
+    echo "  - Set BUILDKITE=true environment variable to enable artifact upload"
+    echo "  - Automatically uploads RBE logs, build artifacts, and build logs"
+    echo "  - Artifacts are uploaded regardless of build success or failure"
+    echo "  - Requires buildkite-agent to be installed and configured"
     echo ""
     echo "Common build targets (format may vary by AOSP version):"
     echo "  aosp_arm64-userdebug    # ARM64 userdebug build"
@@ -414,9 +428,67 @@ main() {
     setup_environment "$script_dir"
     fetch_manifest "$branch" "$target" "$sync_jobs" "$build_dir" "$script_dir"
     setup_build "$target" "$use_rbe" "$build_dir"
-    start_build "$build_dir"
     
-    success "AOSP build process completed!"
+    # Start build and capture exit status
+    local build_success=false
+    if start_build "$build_dir"; then
+        success "AOSP build process completed successfully!"
+        build_success=true
+    else
+        echo -e "${RED}[ERROR]${NC} AOSP build process failed!" | tee -a "$(get_log_file_path "$build_dir")"
+        build_success=false
+    fi
+    
+    # Upload artifacts to Buildkite regardless of build success/failure
+    upload_buildkite_artifacts "$build_dir"
+    
+    # Exit with appropriate code
+    if [ "$build_success" = true ]; then
+        exit 0
+    else
+        exit 1
+    fi
+}
+
+# Function to upload artifacts to Buildkite
+upload_buildkite_artifacts() {
+    local build_dir="$1"
+    
+    if [ "$BUILDKITE" = "true" ]; then
+        log "BUILDKITE environment detected, preparing artifacts for upload..."
+        
+        cd "$build_dir"
+        
+        # Create RBE logs archive if they exist
+        if [ -d "out/soong/.temp/rbe" ]; then
+            log "Creating RBE logs archive..."
+            tar -czf rbe_logs.tar.gz out/soong/.temp/rbe/* 2>/dev/null || {
+                warning "Failed to create RBE logs archive"
+            }
+            
+            if [ -f "rbe_logs.tar.gz" ]; then
+                log "Uploading RBE logs to Buildkite..."
+                buildkite-agent artifact upload rbe_logs.tar.gz || {
+                    warning "Failed to upload RBE logs to Buildkite"
+                }
+            fi
+        else
+            log "No RBE logs found at out/soong/.temp/rbe/"
+        fi
+                
+        # Upload build log
+        local log_file_path=$(get_log_file_path "$build_dir")
+        if [ -f "$log_file_path" ]; then
+            log "Uploading build log to Buildkite..."
+            buildkite-agent artifact upload "$log_file_path" || {
+                warning "Failed to upload build log to Buildkite"
+            }
+        fi
+        
+        success "Buildkite artifact upload completed"
+    else
+        log "BUILDKITE environment not set, skipping artifact upload"
+    fi
 }
 
 # Function to list available lunch targets
