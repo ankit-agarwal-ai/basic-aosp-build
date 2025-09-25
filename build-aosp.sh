@@ -427,7 +427,7 @@ main() {
     # Clean build directory if requested
     if [ "$clean_build" = true ] && [ -d "$build_dir" ]; then
         log "Cleaning build directory..."
-        rm -rf "$build_dir"
+        sudo rm -rf "$build_dir"
     fi
     
     # Run the build process
