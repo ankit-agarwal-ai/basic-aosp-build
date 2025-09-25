@@ -325,6 +325,7 @@ show_usage() {
     echo "  $0 -d /path/to/custom/build           # Use custom build directory"
     echo "  $0 -l                                 # List available lunch targets"
     echo "  $0 -c -b master -t aosp_arm64-user   # Clean build (removes existing directory)"
+    echo "  BUILDKITE_AOSP_CLEAN=1 $0            # Clean build via environment variable"
     echo ""
     echo "Rate Limiting Tips:"
     echo "  - If you get 429 (Too Many Requests) errors, reduce jobs with -j 1 or -j 2"
@@ -346,6 +347,7 @@ show_usage() {
     echo ""
     echo "Buildkite Integration:"
     echo "  - Set BUILDKITE=true environment variable to enable artifact upload"
+    echo "  - Set BUILDKITE_AOSP_CLEAN=1 to automatically enable clean builds"
     echo "  - Automatically uploads RBE logs, build artifacts, and build logs"
     echo "  - Artifacts are uploaded regardless of build success or failure"
     echo "  - Requires buildkite-agent to be installed and configured"
@@ -367,6 +369,12 @@ main() {
     local use_rbe=false
     local clean_build=false
     local script_dir=$(dirname "$(realpath "$0")")
+    
+    # Check for BUILDKITE_AOSP_CLEAN environment variable
+    if [ "$BUILDKITE_AOSP_CLEAN" = "1" ]; then
+        log "BUILDKITE_AOSP_CLEAN=1 detected, enabling clean build"
+        clean_build=true
+    fi
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
