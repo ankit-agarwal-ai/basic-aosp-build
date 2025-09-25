@@ -428,6 +428,7 @@ main() {
     if [ "$clean_build" = true ] && [ -d "$build_dir" ]; then
         log "Cleaning build directory..."
         sudo rm -rf "$build_dir"
+        sudo mkdir -m 777 -p "$build_dir"
     fi
     
     # Run the build process
