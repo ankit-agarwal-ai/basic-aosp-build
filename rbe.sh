@@ -1,5 +1,5 @@
 source build/envsetup.sh
-source build/make/rbesetup.sh  
+# source build/make/rbesetup.sh  
 
 export RBE_service="unix:///mnt/ephemeral/buildbarn/.cache/bb_clientd/grpc" 
 export RBE_use_application_default_credentials="false" 
@@ -52,7 +52,7 @@ export RBE_ZIP_EXEC_STRATEGY="remote_local_fallback"
 export RBE_ZIP_POOL="$WORKER_POOL" 
  
 export RBE_instance="default" 
-export RBE_DIR="prebuilts/remoteexecution-client/live" 
+# export RBE_DIR="prebuilts/remoteexecution-client/live" 
 export RBE_server_address="unix:///mnt/ephemeral/buildbarn/.cache/bb_clientd/grpc" 
 export RBE_remote_accept_cached=true
 export RBE_service_no_auth="true" 
